@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CardHolder from "../../components/CardHolder";
 import Cards from "../../components/Cards";
 import { CardSetsDecksTypes } from "../../utilities/CardDataset";
@@ -10,30 +10,13 @@ import {
 import "./GameSession.scss";
 
 export default function GameSession() {
+  const cardDefaultSize = 100;
   const cardDecks = getCompleteCardSet(2);
   const [currentDecks, setCurrentDecks] = useState(cardDecks);
   const [gameStart, setGameStart] = useState(false);
   const [showDecks, setShowDecks] = useState(false);
   const [playerCard, setPlayerCard] = useState<CardSetsDecksTypes[]>([]);
-  const [cardSize, setCardSize] = useState(0);
-  const [offset, setOffset] = useState(0);
-
-  const playerHoldRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (playerHoldRef.current === null) return;
-    if (playerCard.length <= 1) return;
-    const width = playerHoldRef.current.clientWidth;
-    const scrollWidth = playerHoldRef.current.scrollWidth;
-    const scrollOffset = scrollWidth - width;
-    const newOffset = offset + scrollOffset / (playerCard.length - 1);
-
-    if (scrollOffset === 0) {
-      setOffset(offset - offset / playerCard.length);
-      return;
-    }
-    setOffset(newOffset);
-  }, [playerHoldRef, playerCard, cardSize]);
+  const [tableCard, setTableCard] = useState<CardSetsDecksTypes[]>([]);
 
   const shuffleHandler = () => {
     console.log("shuffling...");
@@ -48,7 +31,6 @@ export default function GameSession() {
     setCurrentDecks(cardDecks);
     setGameStart(false);
     setPlayerCard([]);
-    setOffset(0);
   };
 
   const drawCardHandler = () => {
@@ -94,39 +76,62 @@ export default function GameSession() {
         )}
       </div>
       <div className="game-base-container">
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          {showDecks ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            padding: "0 20px 0 20px",
+            margin: "20px",
+          }}
+        >
+          <CardHolder playerCards={currentDecks} hide={!showDecks} limit={5} />
+          {/* {showDecks ? (
             currentDecks.map((item, index) => {
               return <Cards detail={item} key={index} />;
             })
           ) : (
             <Cards />
-          )}
+          )} */}
         </div>
         {currentDecks.length}
-        <div className="player-container" ref={playerHoldRef}>
-          {playerCard.map((card, index) => {
-            return (
-              <div
-                key={index}
-                className="player-card-container"
-                style={{
-                  marginLeft: `-${index >= 1 ? (16 + offset) / 16 : 0}rem`,
-                }}
-              >
-                <div className="player-card" draggable>
-                  <Cards
-                    detail={card}
-                    onSizeRendered={(v) => cardSize < 1 && setCardSize(v)}
-                  />
-                </div>
-              </div>
-            );
-          })}
+        Cards in deck
+        <div
+          style={{
+            marginBottom: 40,
+          }}
+        >
+          Table Card
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: cardDefaultSize * 1.4,
+              backgroundColor: "cyan",
+            }}
+          >
+            <CardHolder
+              playerCards={tableCard}
+              isPlayerCard
+              onPlayerCardChange={(cards) => setTableCard(cards)}
+            />
+          </div>
         </div>
-        Components
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <CardHolder playerCards={playerCard} />
+        <div>
+          Player 1 Card
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: cardDefaultSize * 1.4,
+              backgroundColor: "cyan",
+            }}
+          >
+            <CardHolder
+              playerCards={playerCard}
+              isPlayerCard
+              onPlayerCardChange={(cards) => setPlayerCard(cards)}
+            />
+          </div>
         </div>
       </div>
     </div>

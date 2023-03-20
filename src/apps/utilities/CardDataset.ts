@@ -43,9 +43,9 @@ export const cardDecks: CardDeckTypes[] = [
 ];
 
 export const cardSets: CardSetTypes[] = [
-  { set: "hearts", color: "red", char: "♥" },
   { set: "diamond", color: "red", char: "♦" },
   { set: "clovers", color: "black", char: "♣" },
+  { set: "hearts", color: "red", char: "♥" },
   { set: "spade", color: "black", char: "♠" },
 ];
 
