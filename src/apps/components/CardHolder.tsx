@@ -5,8 +5,13 @@ import Cards from "./Cards";
 
 type CardHolderPropTypes = {
   playerCards: CardSetsDecksTypes[];
-  onPlayerCardChange?: (cards: any) => void;
+  onPlayerCardChange?: (cards: CardSetsDecksTypes[]) => void;
+  onDrag?: (cards: CardSetsDecksTypes) => void;
+  onDragEnd?: (card: CardSetsDecksTypes, index: number) => void;
+  onDragLeave?: () => void;
   isPlayerCard?: boolean;
+  isDragTargetTable?: boolean;
+  disableHighlight?: boolean;
   hide?: boolean;
   limit?: number;
 };
@@ -29,7 +34,8 @@ const CardHolder: FC<CardHolderPropTypes> = (props) => {
       setOffset(0);
       // playerCardRef.current = [];
     }
-    if (props.limit) return setPlayerCards([...getLastCard(props.limit)]);
+    if (props.limit && props.playerCards.length > props.limit)
+      return setPlayerCards([...getLastCard(props.limit)]);
 
     setPlayerCards([...props.playerCards]);
   }, [props.playerCards]);
@@ -56,8 +62,13 @@ const CardHolder: FC<CardHolderPropTypes> = (props) => {
     }
   }, [playerCards, cardSize, props.playerCards]);
 
-  const onItemDragged = (ev: DragEvent, index: number) => {
+  const onItemDragged = (
+    ev: DragEvent,
+    index: number,
+    card: CardSetsDecksTypes
+  ) => {
     setSelectedCard(index);
+    props.onDrag?.(card);
     // console.log("dragging", { index });
   };
 
@@ -65,16 +76,16 @@ const CardHolder: FC<CardHolderPropTypes> = (props) => {
     ev.preventDefault();
     if (index === targetCard) return;
     setTargetCard(index);
-    console.log("dragged over", ev);
 
     // console.log("dragOver", index);
   };
 
-  const onItemDraggedEnd = () => {
+  const onItemDraggedEnd = (card: CardSetsDecksTypes, index: number) => {
     if (selectedCard >= 0 && targetCard >= 0) {
       const modifiedPlayerCards = moveCard(selectedCard, targetCard);
       setPlayerCards([...modifiedPlayerCards]);
       props.onPlayerCardChange?.(modifiedPlayerCards);
+      props.onDragEnd?.(card, index);
     }
     setSelectedCard(-1);
     setTargetCard(-1);
@@ -104,16 +115,20 @@ const CardHolder: FC<CardHolderPropTypes> = (props) => {
           >
             <div
               className={`holder-card ${
-                targetCard === index && props.isPlayerCard
+                !props.disableHighlight &&
+                targetCard === index &&
+                props.isPlayerCard
                   ? "holder-card-selected"
                   : "holder-card-normal"
               }`}
               ref={(ref) => (playerCardRef.current[index] = ref!)}
               draggable={props.isPlayerCard}
-              onDragStart={(ev) => onItemDragged(ev, index)}
+              onDragStart={(ev) => onItemDragged(ev, index, card)}
               onDragOver={(ev) => onItemDragOver(ev, index)}
-              onDragEnd={onItemDraggedEnd}
-              onDragLeave={(ev) => {}}
+              onDragEnd={() => onItemDraggedEnd(card, index)}
+              onDragLeave={(ev) => {
+                props.onDragLeave?.();
+              }}
             >
               <Cards
                 detail={card}

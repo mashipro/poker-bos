@@ -14,7 +14,7 @@ $width: 75vw;
     align-self: center;
     flex-direction: row;
     width: $width;
-    background-color: aquamarine;
+    // background-color: aquamarine;
 
     .player-card-container {
       transition: 0.2s;
@@ -42,4 +42,10 @@ $width: 75vw;
       }
     }
   }
+}
+
+.focused {
+  box-shadow: 4px 4px 12px 4px rgba(gold, 0.7);
+  border-radius: 0.25em;
+  border: 2px solid gold;
 }

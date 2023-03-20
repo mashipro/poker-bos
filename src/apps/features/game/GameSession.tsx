@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { DragEvent, useEffect, useRef, useState } from "react";
 import CardHolder from "../../components/CardHolder";
 import Cards from "../../components/Cards";
 import { CardSetsDecksTypes } from "../../utilities/CardDataset";
@@ -17,6 +17,8 @@ export default function GameSession() {
   const [showDecks, setShowDecks] = useState(false);
   const [playerCard, setPlayerCard] = useState<CardSetsDecksTypes[]>([]);
   const [tableCard, setTableCard] = useState<CardSetsDecksTypes[]>([]);
+  const [draggedCard, setDraggedCard] = useState<CardSetsDecksTypes>();
+  const [targetTable, setTargetTable] = useState(false);
 
   const shuffleHandler = () => {
     console.log("shuffling...");
@@ -31,6 +33,7 @@ export default function GameSession() {
     setCurrentDecks(cardDecks);
     setGameStart(false);
     setPlayerCard([]);
+    setTableCard([]);
   };
 
   const drawCardHandler = () => {
@@ -44,15 +47,31 @@ export default function GameSession() {
     setPlayerCard(playerNewCard);
   };
 
-  const drawPlayerCardHandler = () => {
-    const decks = [...playerCard];
-    decks.pop();
-
-    setPlayerCard(decks);
-  };
-
   const toggleShowDecksHandler = () => {
     setShowDecks(!showDecks);
+  };
+
+  const onDragOverHandler = (ev: DragEvent) => {
+    ev.preventDefault();
+    setTargetTable(true);
+    // console.log(ev.target);
+  };
+
+  const onPlayerDragItemEndHandler = (
+    card: CardSetsDecksTypes,
+    index: number
+  ) => {
+    if (!targetTable) return;
+    const newCardList = [...playerCard];
+    newCardList.splice(index, 1);
+    setDraggedCard(card);
+    setTableCard([...tableCard, card]);
+    setPlayerCard(newCardList);
+    setTargetTable(false);
+  };
+
+  const onDragLeaveHandler = () => {
+    setTargetTable(false);
   };
 
   return (
@@ -66,7 +85,6 @@ export default function GameSession() {
           <div>
             <button onClick={resetPlayHandler}>Reset</button>
             <button onClick={drawCardHandler}>Draw</button>
-            <button onClick={drawPlayerCardHandler}>Draw Player Card</button>
           </div>
         ) : (
           <div>
@@ -85,13 +103,6 @@ export default function GameSession() {
           }}
         >
           <CardHolder playerCards={currentDecks} hide={!showDecks} limit={5} />
-          {/* {showDecks ? (
-            currentDecks.map((item, index) => {
-              return <Cards detail={item} key={index} />;
-            })
-          ) : (
-            <Cards />
-          )} */}
         </div>
         {currentDecks.length}
         Cards in deck
@@ -102,17 +113,22 @@ export default function GameSession() {
         >
           Table Card
           <div
+            className={`${targetTable && "focused"}`}
             style={{
               display: "flex",
               flexDirection: "column",
               height: cardDefaultSize * 1.4,
-              backgroundColor: "cyan",
+              backgroundColor: "burlywood",
             }}
+            onDragOver={onDragOverHandler}
+            onDragLeave={onDragLeaveHandler}
           >
             <CardHolder
               playerCards={tableCard}
               isPlayerCard
               onPlayerCardChange={(cards) => setTableCard(cards)}
+              disableHighlight
+              limit={4}
             />
           </div>
         </div>
@@ -130,6 +146,8 @@ export default function GameSession() {
               playerCards={playerCard}
               isPlayerCard
               onPlayerCardChange={(cards) => setPlayerCard(cards)}
+              isDragTargetTable={targetTable}
+              onDragEnd={onPlayerDragItemEndHandler}
             />
           </div>
         </div>
