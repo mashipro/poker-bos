@@ -1,6 +1,6 @@
 import React, { DragEvent, useEffect, useRef, useState } from "react";
 import CardHolder from "../../components/CardHolder";
-import Cards from "../../components/Cards";
+
 import { CardSetsDecksTypes } from "../../utilities/CardDataset";
 import {
   getCompleteCardSet,
@@ -17,7 +17,6 @@ export default function GameSession() {
   const [showDecks, setShowDecks] = useState(false);
   const [playerCard, setPlayerCard] = useState<CardSetsDecksTypes[]>([]);
   const [tableCard, setTableCard] = useState<CardSetsDecksTypes[]>([]);
-  const [draggedCard, setDraggedCard] = useState<CardSetsDecksTypes>();
   const [targetTable, setTargetTable] = useState(false);
 
   const shuffleHandler = () => {
@@ -64,7 +63,6 @@ export default function GameSession() {
     if (!targetTable) return;
     const newCardList = [...playerCard];
     newCardList.splice(index, 1);
-    setDraggedCard(card);
     setTableCard([...tableCard, card]);
     setPlayerCard(newCardList);
     setTargetTable(false);
