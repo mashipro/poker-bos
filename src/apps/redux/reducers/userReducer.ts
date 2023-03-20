@@ -1,14 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
+import UserTypes from "../../utilities/types/UserTypes";
 
 type DefaultReducerTypes = {
   value: number;
   uid: string;
   name: string;
+  lastSessionID: string | null;
 };
+
 const InitialState: DefaultReducerTypes = {
   value: 0,
   uid: "",
   name: "",
+  lastSessionID: null,
 };
 
 export const userReducer = createSlice({
@@ -28,10 +32,21 @@ export const userReducer = createSlice({
     incrementByAmount: (state, action) => {
       state.value += action.payload;
     },
+    signIn: (state, action) => {
+      const payload: UserTypes = action.payload;
+      console.log("payload", payload);
+
+      //   state.uid = payload.uid;
+      //   state.name = payload.name;
+      return { ...state, ...payload };
+    },
+    signOut: () => {
+      return { ...InitialState };
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { increment, decrement, incrementByAmount } = userReducer.actions;
+export const { signIn, signOut } = userReducer.actions;
 
 export default userReducer.reducer;

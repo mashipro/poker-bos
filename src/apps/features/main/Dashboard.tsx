@@ -1,16 +1,23 @@
 import { Button, Dialog } from "@mui/material";
 import { padding } from "@mui/system";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import UserDataset from "../../utilities/dummies/userDataDummies";
 import UserTypes from "../../utilities/types/UserTypes";
+import { signIn, signOut } from "../../redux/reducers/userReducer";
+import { RootStateType } from "../../redux/store";
 
 export default function Dashboard() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const user = useSelector((state: RootStateType) => state.user);
 
   const userList = UserDataset;
 
   const [openModal, setOpenModal] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const goToGameHandler = () => {
     navigate("/game");
@@ -20,19 +27,41 @@ export default function Dashboard() {
     setOpenModal(!openModal);
   };
 
+  const logoutHandler = () => {
+    dispatch(signOut());
+  };
+
   const loginCloseHandler = () => {
     setOpenModal(false);
   };
 
-  const onUserSelected = (user: UserTypes) => {};
+  const onUserSelected = (user: UserTypes) => {
+    dispatch(signIn(user));
+    setOpenModal(false);
+  };
+
+  useEffect(() => {
+    setLoggedIn(user.uid.length > 0);
+  }, [user]);
 
   return (
     <div>
       POKER
       <div>
-        <Button variant="outlined" onClick={loginHandler}>
-          Login
-        </Button>
+        {loggedIn ? (
+          <div>
+            <Button variant="outlined" onClick={logoutHandler}>
+              Logout
+            </Button>
+            <Button variant="outlined" onClick={goToGameHandler}>
+              JoinGame
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outlined" onClick={loginHandler}>
+            Login
+          </Button>
+        )}
         {/* <Button variant="contained" onClick={goToGameHandler}>
           Go to Game
         </Button> */}
@@ -46,10 +75,9 @@ export default function Dashboard() {
           >
             Select user
             {userList.map((user) => (
-              <div>
+              <div key={user.uid}>
                 <Button
                   variant="contained"
-                  key={user.uid}
                   onClick={() => onUserSelected(user)}
                 >
                   {user.name}
