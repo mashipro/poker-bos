@@ -1,4 +1,6 @@
+import { Button } from "@mui/material";
 import React, { DragEvent, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CardHolder from "../../components/CardHolder";
 
 import { CardSetsDecksTypes } from "../../utilities/CardDataset";
@@ -10,6 +12,7 @@ import {
 import "./GameSession.scss";
 
 export default function GameSession() {
+  const navigate = useNavigate();
   const cardDefaultSize = 100;
   const cardDecks = getCompleteCardSet(2);
   const [currentDecks, setCurrentDecks] = useState(cardDecks);
