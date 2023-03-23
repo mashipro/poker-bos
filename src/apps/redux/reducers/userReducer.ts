@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import UserTypes from "../../utilities/types/UserTypes";
 
 type DefaultReducerTypes = {
@@ -16,7 +16,7 @@ const InitialState: DefaultReducerTypes = {
 };
 
 export const userReducer = createSlice({
-  name: "counter",
+  name: "user",
   initialState: InitialState,
   reducers: {
     increment: (state) => {
@@ -32,9 +32,8 @@ export const userReducer = createSlice({
     incrementByAmount: (state, action) => {
       state.value += action.payload;
     },
-    signIn: (state, action) => {
-      const payload: UserTypes = action.payload;
-      console.log("payload", payload);
+    signIn: (state, action: PayloadAction<UserTypes>) => {
+      const payload = action.payload;
 
       //   state.uid = payload.uid;
       //   state.name = payload.name;

@@ -1,9 +1,16 @@
 import { Button } from "@mui/material";
-import React, { DragEvent, useEffect, useRef, useState } from "react";
+import React, { DragEvent, useEffect, useRef, useState, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import CardHolder from "../../components/CardHolder";
-
+import { RootStateTypes } from "../../redux/reducers";
+import {
+  joinSession,
+  resetGameSession,
+  startGameSession,
+} from "../../redux/reducers/gameReducer";
 import { CardSetsDecksTypes } from "../../utilities/CardDataset";
+import DefaultValue from "../../utilities/DefaultValue";
 import {
   getCompleteCardSet,
   shuffleCard,
@@ -13,8 +20,14 @@ import "./GameSession.scss";
 
 export default function GameSession() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const gameState = useSelector((state: RootStateTypes) => state.game);
+  const userState = useSelector((state: RootStateTypes) => state.user);
+
   const cardDefaultSize = 100;
   const cardDecks = getCompleteCardSet(2);
+
   const [currentDecks, setCurrentDecks] = useState(cardDecks);
   const [gameStart, setGameStart] = useState(false);
   const [showDecks, setShowDecks] = useState(false);
@@ -22,20 +35,29 @@ export default function GameSession() {
   const [tableCard, setTableCard] = useState<CardSetsDecksTypes[]>([]);
   const [targetTable, setTargetTable] = useState(false);
 
+  const playerList = useMemo(() => gameState.player, [gameState]);
+  const currentPlayerUID = userState.uid;
+
   const shuffleHandler = () => {
     console.log("shuffling...");
     setCurrentDecks([...shuffleCard(currentDecks)]);
   };
 
+  const joinGamePressHandler = () => {
+    dispatch(joinSession(userState));
+  };
+
   const startPlayHandler = () => {
-    setGameStart(true);
+    // setGameStart(true);
+    dispatch(startGameSession());
   };
 
   const resetPlayHandler = () => {
-    setCurrentDecks(cardDecks);
-    setGameStart(false);
-    setPlayerCard([]);
-    setTableCard([]);
+    dispatch(resetGameSession());
+    // setCurrentDecks(cardDecks);
+    // setGameStart(false);
+    // setPlayerCard([]);
+    // setTableCard([]);
   };
 
   const drawCardHandler = () => {
@@ -78,22 +100,36 @@ export default function GameSession() {
   return (
     <div>
       <h1>Game Session</h1>
-      <div>
-        <button onClick={toggleShowDecksHandler}>
-          {showDecks ? "hide" : "show"} decks
-        </button>
-        {gameStart ? (
-          <div>
-            <button onClick={resetPlayHandler}>Reset</button>
-            <button onClick={drawCardHandler}>Draw</button>
-          </div>
-        ) : (
-          <div>
-            <button onClick={startPlayHandler}>Start</button>
-            <button onClick={shuffleHandler}>Shuffle Decks</button>
-          </div>
-        )}
-      </div>
+      {playerList.length < DefaultValue.MAX_PLAYER ? (
+        <Button variant="contained" onClick={joinGamePressHandler}>
+          Join Game
+        </Button>
+      ) : (
+        <div>
+          <Button onClick={toggleShowDecksHandler}>
+            {showDecks ? "hide" : "show"} decks
+          </Button>
+          {gameState.isStart ? (
+            <div>
+              <Button variant="contained" onClick={resetPlayHandler}>
+                Reset
+              </Button>
+              <Button variant="contained" onClick={drawCardHandler}>
+                Draw
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <Button variant="contained" onClick={startPlayHandler}>
+                Start
+              </Button>
+              <Button variant="contained" onClick={shuffleHandler}>
+                Shuffle Decks
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       <div className="game-base-container">
         <div
           style={{
@@ -103,7 +139,11 @@ export default function GameSession() {
             margin: "20px",
           }}
         >
-          <CardHolder playerCards={currentDecks} hide={!showDecks} limit={5} />
+          <CardHolder
+            playerCards={gameState.cardDecks}
+            hide={!showDecks}
+            limit={5}
+          />
         </div>
         {currentDecks.length}
         Cards in deck

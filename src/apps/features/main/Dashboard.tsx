@@ -6,13 +6,13 @@ import { useDispatch, useSelector } from "react-redux";
 import UserDataset from "../../utilities/dummies/userDataDummies";
 import UserTypes from "../../utilities/types/UserTypes";
 import { signIn, signOut } from "../../redux/reducers/userReducer";
-import { RootStateType } from "../../redux/store";
+import { RootStateTypes } from "../../redux/reducers";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const user = useSelector((state: RootStateType) => state.user);
+  const user = useSelector((state: RootStateTypes) => state.user);
 
   const userList = UserDataset;
 
