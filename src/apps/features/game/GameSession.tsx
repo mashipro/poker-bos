@@ -6,6 +6,7 @@ import CardHolder from "../../components/CardHolder";
 import { RootStateTypes } from "../../redux/reducers";
 import {
   joinSession,
+  playerDrawCard,
   resetGameSession,
   startGameSession,
 } from "../../redux/reducers/gameReducer";
@@ -61,14 +62,15 @@ export default function GameSession() {
   };
 
   const drawCardHandler = () => {
-    const decks = [...currentDecks];
-    const newCard = decks.pop();
+    dispatch(playerDrawCard(userState));
+    // const decks = [...currentDecks];
+    // const newCard = decks.pop();
 
-    const playerNewCard = [...playerCard];
-    playerNewCard.push(newCard!);
+    // const playerNewCard = [...playerCard];
+    // playerNewCard.push(newCard!);
 
-    setCurrentDecks(decks);
-    setPlayerCard(playerNewCard);
+    // setCurrentDecks(decks);
+    // setPlayerCard(playerNewCard);
   };
 
   const toggleShowDecksHandler = () => {
@@ -145,8 +147,6 @@ export default function GameSession() {
             limit={5}
           />
         </div>
-        {currentDecks.length}
-        Cards in deck
         <div
           style={{
             marginBottom: 40,
@@ -173,7 +173,30 @@ export default function GameSession() {
             />
           </div>
         </div>
-        <div>
+        {gameState.player.map((playerState, index) => {
+          return (
+            <div>
+              player-{index + 1} - {playerState.uid}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: cardDefaultSize * 1.4,
+                  backgroundColor: "cyan",
+                }}
+              >
+                <CardHolder
+                  playerCards={playerState.playerDecks}
+                  isPlayerCard={playerState.uid === userState.uid}
+                  onPlayerCardChange={(cards) => setPlayerCard(cards)}
+                  isDragTargetTable={targetTable}
+                  onDragEnd={onPlayerDragItemEndHandler}
+                />
+              </div>
+            </div>
+          );
+        })}
+        {/* <div>
           Player 1 Card
           <div
             style={{
@@ -191,7 +214,7 @@ export default function GameSession() {
               onDragEnd={onPlayerDragItemEndHandler}
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

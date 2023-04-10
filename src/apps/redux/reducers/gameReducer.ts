@@ -14,6 +14,13 @@ type PlayerTypes = {
   playerCardWell: CardSetsDecksTypes[];
 };
 
+type GameLogTypes = {
+  time: Date;
+  statCode: number;
+  message: string;
+  user: PlayerTypes;
+};
+
 type DefaultReducerTypes = {
   value: number;
   cardDecks: CardSetsDecksTypes[];
@@ -24,6 +31,7 @@ type DefaultReducerTypes = {
   turnsCount: number;
   isClockwise: boolean;
   sessionID: string;
+  gameLog: GameLogTypes[];
 };
 
 const DefaultPlayer: PlayerTypes = {
@@ -42,7 +50,10 @@ const InitialState: DefaultReducerTypes = {
   turnsCount: 0,
   isClockwise: true,
   sessionID: "default",
+  gameLog: [],
 };
+
+//todo: add Game Logger
 
 export const gameReducer = createSlice({
   name: "gameSession",
@@ -81,15 +92,31 @@ export const gameReducer = createSlice({
 
       return { ...state, cardDecks: [...shuffled], isStart: true };
     },
+
     resetGameSession: (state) => {
-      return { ...InitialState, player: state.player };
+      return { ...InitialState };
     },
-    initialCardDraw: (state) => {},
+
+    playerDrawCard: (state, action: PayloadAction<UserTypes>) => {
+      const lastCardDeck = [...state.cardDecks];
+      const pickLast = lastCardDeck.pop();
+      const playerIndex = state.player.findIndex(
+        (player) => player.uid === action.payload.uid
+      );
+
+      state.cardDecks = lastCardDeck;
+      state.player[playerIndex].playerDecks.push(pickLast!);
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { joinSession, endSession, startGameSession, resetGameSession } =
-  gameReducer.actions;
+export const {
+  joinSession,
+  endSession,
+  startGameSession,
+  resetGameSession,
+  playerDrawCard,
+} = gameReducer.actions;
 
 export default gameReducer.reducer;
