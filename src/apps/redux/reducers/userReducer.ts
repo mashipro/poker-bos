@@ -1,14 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import UserTypes from "../../utilities/types/UserTypes";
 
-type DefaultReducerTypes = {
+type DefaultUserReducerTypes = {
   value: number;
   uid: string;
   name: string;
   lastSessionID: string | null;
 };
 
-const InitialState: DefaultReducerTypes = {
+const InitialState: DefaultUserReducerTypes = {
   value: 0,
   uid: "",
   name: "",

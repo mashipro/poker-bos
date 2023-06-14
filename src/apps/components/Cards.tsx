@@ -13,6 +13,7 @@ type CardPropTypes = {
   detail?: CardSetsDecksTypes;
   size?: number;
   hide?: boolean;
+  showRoyalSymbol?: boolean;
   onSizeRendered?: (size: number) => void;
 };
 
@@ -27,6 +28,7 @@ type CardContentPropTypes = {
   cardSet: CardSetTypes;
   subRank: CardSubRankTypes;
   ranks: string;
+  showRoyalSymbol?: boolean;
 };
 
 const CardHead: FC<CardHeadPropTypes> = (props) => {
@@ -80,7 +82,9 @@ const CardContent: FC<CardContentPropTypes> = (props) => {
           className="card-ace-container"
           style={{ color: props.cardSet.color }}
         >
-          {cardRoyalMap[props.ranks]}
+          {props.showRoyalSymbol
+            ? cardRoyalMap[props.ranks]
+            : props.cardSet.char}
         </div>
       );
 
@@ -123,6 +127,7 @@ const Cards: FC<CardPropTypes> = (props) => {
               cardSet={cardSet}
               ranks={cardDetail.ranks}
               subRank={cardDetail.subRank}
+              showRoyalSymbol={props.showRoyalSymbol}
             />
           </div>
           <CardHead

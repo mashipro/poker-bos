@@ -21,7 +21,7 @@ type GameLogTypes = {
   user: PlayerTypes;
 };
 
-type DefaultReducerTypes = {
+type DefaultGameReducerTypes = {
   value: number;
   cardDecks: CardSetsDecksTypes[];
   tableDecks: CardSetsDecksTypes[];
@@ -34,13 +34,24 @@ type DefaultReducerTypes = {
   gameLog: GameLogTypes[];
 };
 
+type CardModifyTypes = {
+  player: UserTypes;
+  decks: CardSetsDecksTypes[];
+};
+
+type CardActionTypes = {
+  player: UserTypes;
+  card: CardSetsDecksTypes;
+  index: number;
+};
+
 const DefaultPlayer: PlayerTypes = {
   uid: "",
   playerDecks: [],
   playerCardWell: [],
 };
 
-const InitialState: DefaultReducerTypes = {
+const InitialState: DefaultGameReducerTypes = {
   value: 0,
   cardDecks: [],
   tableDecks: [],
@@ -54,6 +65,16 @@ const InitialState: DefaultReducerTypes = {
 };
 
 //todo: add Game Logger
+
+const getPlayerIndex = (
+  state: DefaultGameReducerTypes,
+  targetPlayer: UserTypes
+) => {
+  const playerIndex = state.player.findIndex(
+    (player) => player.uid === targetPlayer.uid
+  );
+  return playerIndex;
+};
 
 export const gameReducer = createSlice({
   name: "gameSession",
@@ -81,7 +102,7 @@ export const gameReducer = createSlice({
       return { ...state, player: [...state.player, newPlayer, ...otherPlayer] };
     },
 
-    endSession: (state) => {
+    endSession: () => {
       return { ...InitialState };
     },
 
@@ -93,19 +114,45 @@ export const gameReducer = createSlice({
       return { ...state, cardDecks: [...shuffled], isStart: true };
     },
 
-    resetGameSession: (state) => {
+    resetGameSession: () => {
       return { ...InitialState };
     },
 
     playerDrawCard: (state, action: PayloadAction<UserTypes>) => {
       const lastCardDeck = [...state.cardDecks];
       const pickLast = lastCardDeck.pop();
-      const playerIndex = state.player.findIndex(
-        (player) => player.uid === action.payload.uid
-      );
+      const playerIndex = getPlayerIndex(state, action.payload);
 
       state.cardDecks = lastCardDeck;
       state.player[playerIndex].playerDecks.push(pickLast!);
+    },
+
+    changePlayerCardDecks: (state, action: PayloadAction<CardModifyTypes>) => {
+      const playerIndex = getPlayerIndex(state, action.payload.player);
+
+      state.player[playerIndex].playerDecks = action.payload.decks;
+    },
+
+    changePlayerCardWell: (state, action: PayloadAction<CardModifyTypes>) => {
+      const playerIndex = getPlayerIndex(state, action.payload.player);
+
+      state.player[playerIndex].playerCardWell = action.payload.decks;
+    },
+
+    moveCardToTableDecks: (state, action: PayloadAction<CardActionTypes>) => {
+      const playerIndex = getPlayerIndex(state, action.payload.player);
+      const playerDeck = state.player[playerIndex].playerDecks;
+
+      playerDeck.splice(action.payload.index, 1);
+      state.tableDecks.push(action.payload.card);
+    },
+
+    moveCardToWell: (state, action: PayloadAction<CardActionTypes>) => {
+      const playerIndex = getPlayerIndex(state, action.payload.player);
+      const player = state.player[playerIndex];
+
+      player.playerDecks.splice(action.payload.index, 1);
+      player.playerCardWell.push(action.payload.card);
     },
   },
 });
@@ -117,6 +164,10 @@ export const {
   startGameSession,
   resetGameSession,
   playerDrawCard,
+  changePlayerCardDecks,
+  moveCardToTableDecks,
+  moveCardToWell,
+  changePlayerCardWell,
 } = gameReducer.actions;
 
 export default gameReducer.reducer;

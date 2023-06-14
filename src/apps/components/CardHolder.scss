@@ -8,6 +8,11 @@
 
   .holder-card-container {
     .holder-card {
+      -moz-user-select: none; /* firefox */
+      -webkit-user-select: none; /* Safari */
+      -ms-user-select: none; /* IE*/
+      user-select: none; /* Standard syntax */
+
       // &:hover {
       //   transform: translateY(-1rem);
       // }

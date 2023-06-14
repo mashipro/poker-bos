@@ -5,17 +5,18 @@ import { useNavigate } from "react-router-dom";
 import CardHolder from "../../components/CardHolder";
 import { RootStateTypes } from "../../redux/reducers";
 import {
+  changePlayerCardDecks,
+  changePlayerCardWell,
   joinSession,
+  moveCardToTableDecks,
+  moveCardToWell,
   playerDrawCard,
   resetGameSession,
   startGameSession,
 } from "../../redux/reducers/gameReducer";
 import { CardSetsDecksTypes } from "../../utilities/CardDataset";
 import DefaultValue from "../../utilities/DefaultValue";
-import {
-  getCompleteCardSet,
-  shuffleCard,
-} from "../../utilities/managers/GameManager";
+import UserTypes from "../../utilities/types/UserTypes";
 
 import "./GameSession.scss";
 
@@ -27,76 +28,99 @@ export default function GameSession() {
   const userState = useSelector((state: RootStateTypes) => state.user);
 
   const cardDefaultSize = 100;
-  const cardDecks = getCompleteCardSet(2);
 
-  const [currentDecks, setCurrentDecks] = useState(cardDecks);
-  const [gameStart, setGameStart] = useState(false);
   const [showDecks, setShowDecks] = useState(false);
-  const [playerCard, setPlayerCard] = useState<CardSetsDecksTypes[]>([]);
-  const [tableCard, setTableCard] = useState<CardSetsDecksTypes[]>([]);
   const [targetTable, setTargetTable] = useState(false);
+  const [targetWell, setTargetWell] = useState(false);
+  const [cardDragged, setCardDragged] = useState(false);
 
   const playerList = useMemo(() => gameState.player, [gameState]);
-  const currentPlayerUID = userState.uid;
-
-  const shuffleHandler = () => {
-    console.log("shuffling...");
-    setCurrentDecks([...shuffleCard(currentDecks)]);
-  };
 
   const joinGamePressHandler = () => {
     dispatch(joinSession(userState));
   };
 
   const startPlayHandler = () => {
-    // setGameStart(true);
     dispatch(startGameSession());
   };
 
   const resetPlayHandler = () => {
     dispatch(resetGameSession());
-    // setCurrentDecks(cardDecks);
-    // setGameStart(false);
-    // setPlayerCard([]);
-    // setTableCard([]);
   };
 
   const drawCardHandler = () => {
     dispatch(playerDrawCard(userState));
-    // const decks = [...currentDecks];
-    // const newCard = decks.pop();
+  };
 
-    // const playerNewCard = [...playerCard];
-    // playerNewCard.push(newCard!);
+  const onPlayerCardChangeHandler = (
+    player: UserTypes,
+    playerCardHold: CardSetsDecksTypes[]
+  ) => {
+    console.log("card hold changed");
+    dispatch(changePlayerCardDecks({ player: player, decks: playerCardHold }));
+  };
 
-    // setCurrentDecks(decks);
-    // setPlayerCard(playerNewCard);
+  const onPlayerWellChangeHandler = (playerCardHold: CardSetsDecksTypes[]) => {
+    console.log("card well changed");
+    dispatch(
+      changePlayerCardWell({ player: userState, decks: playerCardHold })
+    );
   };
 
   const toggleShowDecksHandler = () => {
     setShowDecks(!showDecks);
   };
 
-  const onDragOverHandler = (ev: DragEvent) => {
+  const onDragOverTableHandler = (ev: DragEvent) => {
     ev.preventDefault();
-    setTargetTable(true);
+    if (cardDragged) {
+      setTargetTable(true);
+    }
     // console.log(ev.target);
   };
 
-  const onPlayerDragItemEndHandler = (
-    card: CardSetsDecksTypes,
-    index: number
-  ) => {
-    if (!targetTable) return;
-    const newCardList = [...playerCard];
-    newCardList.splice(index, 1);
-    setTableCard([...tableCard, card]);
-    setPlayerCard(newCardList);
+  const onDragLeaveTableHandler = () => {
     setTargetTable(false);
   };
 
-  const onDragLeaveHandler = () => {
+  const onDragOverWellHandler = (ev: DragEvent) => {
+    ev.preventDefault();
+    if (cardDragged) {
+      setTargetWell(true);
+    }
+    // console.log(ev.target);
+  };
+
+  const onDragLeaveWellHandler = () => {
+    setTargetWell(false);
+  };
+
+  const onPlayerDragCardHandler = () => {
+    setCardDragged(true);
+  };
+
+  const onPlayerDragCardEndHandler = (
+    card: CardSetsDecksTypes,
+    index: number
+  ) => {
+    if (targetTable) {
+      dispatch(moveCardToTableDecks({ player: userState, card, index }));
+    }
+
+    if (targetWell) {
+      dispatch(moveCardToWell({ player: userState, card, index }));
+    }
+
     setTargetTable(false);
+    setTargetWell(false);
+    setCardDragged(false);
+  };
+
+  const currentPlayerCardWell = () => {
+    const playerIndex = playerList.findIndex(
+      (player) => player.uid === userState.uid
+    );
+    return playerList[playerIndex]?.playerCardWell ?? [];
   };
 
   return (
@@ -124,9 +148,6 @@ export default function GameSession() {
             <div>
               <Button variant="contained" onClick={startPlayHandler}>
                 Start
-              </Button>
-              <Button variant="contained" onClick={shuffleHandler}>
-                Shuffle Decks
               </Button>
             </div>
           )}
@@ -161,19 +182,46 @@ export default function GameSession() {
               height: cardDefaultSize * 1.4,
               backgroundColor: "burlywood",
             }}
-            onDragOver={onDragOverHandler}
-            onDragLeave={onDragLeaveHandler}
+            onDragOver={onDragOverTableHandler}
+            onDragLeave={onDragLeaveTableHandler}
           >
             <CardHolder
-              playerCards={tableCard}
-              isPlayerCard
-              onPlayerCardChange={(cards) => setTableCard(cards)}
+              playerCards={gameState.tableDecks}
+              showCard
+              // onPlayerCardChange={(cards) => setTableCard(cards)}
               disableHighlight
-              limit={4}
+              disableSwap
             />
           </div>
         </div>
+        <div
+          style={{
+            marginBottom: 40,
+          }}
+        >
+          Card Well
+          <div
+            className={`${targetWell && "focused"}`}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: cardDefaultSize * 1.4,
+              backgroundColor: "skyblue",
+            }}
+            onDragOver={onDragOverWellHandler}
+            onDragLeave={onDragLeaveWellHandler}
+          >
+            <CardHolder
+              playerCards={currentPlayerCardWell()}
+              showCard
+              onPlayerCardChange={onPlayerWellChangeHandler}
+              // onDragEnd={onPlayerDragCardEndHandler}
+            />
+          </div>
+        </div>
+
         {gameState.player.map((playerState, index) => {
+          const isCurrentPlayer = playerState.uid === userState.uid;
           return (
             <div>
               player-{index + 1} - {playerState.uid}
@@ -187,34 +235,18 @@ export default function GameSession() {
               >
                 <CardHolder
                   playerCards={playerState.playerDecks}
-                  isPlayerCard={playerState.uid === userState.uid}
-                  onPlayerCardChange={(cards) => setPlayerCard(cards)}
-                  isDragTargetTable={targetTable}
-                  onDragEnd={onPlayerDragItemEndHandler}
+                  showCard={isCurrentPlayer}
+                  disableSwap={!isCurrentPlayer}
+                  onPlayerCardChange={(cards) =>
+                    onPlayerCardChangeHandler(userState, cards)
+                  }
+                  onDrag={onPlayerDragCardHandler}
+                  onDragEnd={onPlayerDragCardEndHandler}
                 />
               </div>
             </div>
           );
         })}
-        {/* <div>
-          Player 1 Card
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              height: cardDefaultSize * 1.4,
-              backgroundColor: "cyan",
-            }}
-          >
-            <CardHolder
-              playerCards={playerCard}
-              isPlayerCard
-              onPlayerCardChange={(cards) => setPlayerCard(cards)}
-              isDragTargetTable={targetTable}
-              onDragEnd={onPlayerDragItemEndHandler}
-            />
-          </div>
-        </div> */}
       </div>
     </div>
   );

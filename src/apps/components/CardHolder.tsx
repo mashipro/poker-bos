@@ -9,9 +9,9 @@ type CardHolderPropTypes = {
   onDrag?: (cards: CardSetsDecksTypes) => void;
   onDragEnd?: (card: CardSetsDecksTypes, index: number) => void;
   onDragLeave?: () => void;
-  isPlayerCard?: boolean;
-  isDragTargetTable?: boolean;
+  showCard?: boolean;
   disableHighlight?: boolean;
+  disableSwap?: boolean;
   hide?: boolean;
   limit?: number;
 };
@@ -29,7 +29,7 @@ const CardHolder: FC<CardHolderPropTypes> = (props) => {
   const playerCardRef = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
-    console.log("card holder updated");
+    console.log("card holder components updated");
     if (props.playerCards.length < 1) {
       setOffset(0);
       // playerCardRef.current = [];
@@ -107,7 +107,7 @@ const CardHolder: FC<CardHolderPropTypes> = (props) => {
           <div
             key={index}
             className={`holder-card-container ${
-              props.isPlayerCard && "hover-enabled"
+              props.showCard && "hover-enabled"
             }`}
             style={{
               marginLeft: `-${index >= 1 ? (16 + offset) / 16 : 0}rem`,
@@ -117,12 +117,12 @@ const CardHolder: FC<CardHolderPropTypes> = (props) => {
               className={`holder-card ${
                 !props.disableHighlight &&
                 targetCard === index &&
-                props.isPlayerCard
+                props.showCard
                   ? "holder-card-selected"
                   : "holder-card-normal"
               }`}
               ref={(ref) => (playerCardRef.current[index] = ref!)}
-              draggable={props.isPlayerCard}
+              draggable={props.showCard && !props.disableSwap}
               onDragStart={(ev) => onItemDragged(ev, index, card)}
               onDragOver={(ev) => onItemDragOver(ev, index)}
               onDragEnd={() => onItemDraggedEnd(card, index)}
